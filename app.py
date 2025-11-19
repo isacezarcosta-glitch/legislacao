@@ -39,7 +39,9 @@ if botao_buscar and tema:
             "ordenarPor": "id",
             "itens": 10 
         }
-        
+if usar_filtro_ano:
+    parametros["ano"] = ano_selecionado
+    Antes, o código *sempre* enviava o ano. Agora, ele só envia essa regra para a API se você tiver pedido. Se não pedir, a API entende automaticamente que é para buscar tudo.
         try:
             resposta = requests.get(url_proposicoes, params=parametros)
             
