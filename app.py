@@ -12,19 +12,19 @@ st.set_page_config(
 st.title("🏛️ Monitor Legislativo")
 st.markdown("""
 Bem-vindo ao buscador de **Proposições Legislativas**. 
-Digite um tema jurídico abaixo para ver o que está tramitando na Câmara dos Deputados.
+Digite um tema jurídico abaixo para ver os temas que estão tramitando na Câmara dos Deputados.
 """)
 
 st.divider() 
 
 # 3. Entrada de Dados
-tema = st.text_input("Digite uma palavra-chave (ex: Criptomoedas, Divórcio, IA):")
+tema = st.text_input("Digite uma palavra-chave (ex: Armas, Drogas, Divórcio, IA, etc.):")
 botao_buscar = st.button("Pesquisar Projetos")
 
 # 4. Lógica da Pesquisa
 if botao_buscar and tema:
     with st.spinner('Consultando a base de dados da Câmara...'):
-        # URL base
+        # URL base da API
         url_proposicoes = "https://dadosabertos.camara.leg.br/api/v2/proposicoes"
         
         parametros = {
@@ -44,12 +44,10 @@ if botao_buscar and tema:
                     st.success(f"Encontramos {len(dados)} projetos recentes sobre '{tema}':")
                     
                     for projeto in dados:
-                        # --- LÓGICA DE AUTORES APRIMORADA ---
                         nome_autor = "Autor não identificado"
-                        partido_autor = "Partido não identificado" # Valor padrão
+                        partido_autor = "Não identificado" 
                         
                         try:
-                            # 1. Busca os autores daquele projeto
                             url_autores = f"{url_proposicoes}/{projeto['id']}/autores"
                             resp_autores = requests.get(url_autores)
                             lista_autores = resp_autores.json()['dados']
@@ -58,17 +56,13 @@ if botao_buscar and tema:
                                 autor_principal = lista_autores[0]
                                 nome_autor = autor_principal['nome']
                                 
-                                # Tenta pegar a sigla do partido diretamente se disponível
-                                # A API as vezes chama de 'siglaPartido' ou está dentro de uma uri
+                                # Tenta pegar a sigla direta ou busca na URI do deputado
                                 if 'siglaPartido' in autor_principal and autor_principal['siglaPartido']:
                                     partido_autor = autor_principal['siglaPartido']
-                                else:
-                                    # SE FALHAR: Tenta buscar detalhes do deputado pela URI (link) dele
-                                    if 'uri' in autor_principal:
-                                        resp_deputado = requests.get(autor_principal['uri'])
-                                        dados_deputado = resp_deputado.json()['dados']
-                                        # Pega o ultimo status do partido
-                                        partido_autor = dados_deputado['ultimoStatus']['siglaPartido']
+                                elif 'uri' in autor_principal:
+                                    resp_deputado = requests.get(autor_principal['uri'])
+                                    dados_deputado = resp_deputado.json()['dados']
+                                    partido_autor = dados_deputado['ultimoStatus']['siglaPartido']
                         except:
                             partido_autor = "Não disponível"
 
@@ -81,7 +75,7 @@ if botao_buscar and tema:
                             """)
                             
                             link_camara = f"https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao={projeto['id']}"
-                            st.markdown(f"**Link da tramitação:** [Clique aqui para acessar]({link_camara})")
+                            st.markdown(f"[🔗 Ver Tramitação Completa na Câmara]({link_camara})")
                             
                 else:
                     st.warning("Nenhum projeto encontrado com essa palavra-chave.")
