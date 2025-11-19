@@ -19,16 +19,22 @@ st.divider()
 
 # 3. Entrada de Dados
 tema = st.text_input("Digite uma palavra-chave (ex: Armas, Drogas, Divórcio, IA, etc.):")
+
+# --- NOVO: Filtro de Ano ---
+# Adicionei um slider que vai de 2000 até 2025
+ano_filtro = st.slider("Selecione o ano do projeto:", min_value=2000, max_value=2025, value=2024)
+
 botao_buscar = st.button("Pesquisar Projetos")
 
 # 4. Lógica da Pesquisa
 if botao_buscar and tema:
-    with st.spinner('Consultando a base de dados da Câmara...'):
+    with st.spinner(f'Consultando a base de dados da Câmara para o ano de {ano_filtro}...'):
         # URL base da API
         url_proposicoes = "https://dadosabertos.camara.leg.br/api/v2/proposicoes"
         
         parametros = {
             "keywords": tema,
+            "ano": ano_filtro,  # --- AQUI ESTÁ A MUDANÇA: O filtro entra na requisição ---
             "ordem": "DESC",
             "ordenarPor": "id",
             "itens": 10 
@@ -41,10 +47,10 @@ if botao_buscar and tema:
                 dados = resposta.json()['dados']
                 
                 if len(dados) > 0:
-                    st.success(f"Encontramos {len(dados)} projetos recentes sobre '{tema}':")
+                    st.success(f"Encontramos {len(dados)} projetos sobre '{tema}' no ano de {ano_filtro}:")
                     
                     for projeto in dados:
-                        # --- LÓGICA DE AUTORES (Mantida a correção do Partido) ---
+                        # --- LÓGICA DE AUTORES ---
                         nome_autor = "Autor não identificado"
                         partido_autor = "Não identificado" 
                         
@@ -75,12 +81,11 @@ if botao_buscar and tema:
                             **Ementa:** {projeto['ementa']}
                             """)
                             
-                            # --- AQUI ESTÁ A MUDANÇA QUE VOCÊ PEDIU ---
                             link_camara = f"https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao={projeto['id']}"
                             st.markdown(f"[🔗 Ver Tramitação Completa na Câmara]({link_camara})")
                             
                 else:
-                    st.warning("Nenhum projeto encontrado com essa palavra-chave.")
+                    st.warning(f"Nenhum projeto encontrado com a palavra '{tema}' no ano de {ano_filtro}.")
             else:
                 st.error("Erro ao conectar com a API da Câmara.")
                 
