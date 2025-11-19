@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import pandas as pd
 
 # 1. Configuração da Página
 st.set_page_config(
@@ -26,7 +25,7 @@ botao_buscar = st.button("Pesquisar Projetos")
 if botao_buscar and tema:
     with st.spinner('Consultando a base de dados da Câmara...'):
         # URL base
-        url_base = "https://dadosabertos.camara.leg.br/api/v2/proposicoes"
+        url_proposicoes = "https://dadosabertos.camara.leg.br/api/v2/proposicoes"
         
         parametros = {
             "keywords": tema,
@@ -36,7 +35,7 @@ if botao_buscar and tema:
         }
         
         try:
-            resposta = requests.get(url_base, params=parametros)
+            resposta = requests.get(url_proposicoes, params=parametros)
             
             if resposta.status_code == 200:
                 dados = resposta.json()['dados']
@@ -45,34 +44,40 @@ if botao_buscar and tema:
                     st.success(f"Encontramos {len(dados)} projetos recentes sobre '{tema}':")
                     
                     for projeto in dados:
-                        # --- NOVA LÓGICA AQUI ---
-                        # Para cada projeto, vamos buscar os autores
+                        # --- LÓGICA DE AUTORES APRIMORADA ---
+                        nome_autor = "Autor não identificado"
+                        partido_autor = "Partido não identificado" # Valor padrão
+                        
                         try:
-                            url_autores = f"{url_base}/{projeto['id']}/autores"
+                            # 1. Busca os autores daquele projeto
+                            url_autores = f"{url_proposicoes}/{projeto['id']}/autores"
                             resp_autores = requests.get(url_autores)
                             lista_autores = resp_autores.json()['dados']
                             
-                            # Pega o primeiro nome da lista ou define como desconhecido
                             if lista_autores:
-                                nome_autor = lista_autores[0]['nome']
-                                # A API de autores as vezes não traz o partido direto nessa lista simples,
-                                # então deixamos uma indicação padrão ou pegamos se disponível.
-                                partido_autor = "Verificar no Link" 
-                            else:
-                                nome_autor = "Autor não identificado"
-                                partido_autor = "-"
+                                autor_principal = lista_autores[0]
+                                nome_autor = autor_principal['nome']
                                 
+                                # Tenta pegar a sigla do partido diretamente se disponível
+                                # A API as vezes chama de 'siglaPartido' ou está dentro de uma uri
+                                if 'siglaPartido' in autor_principal and autor_principal['siglaPartido']:
+                                    partido_autor = autor_principal['siglaPartido']
+                                else:
+                                    # SE FALHAR: Tenta buscar detalhes do deputado pela URI (link) dele
+                                    if 'uri' in autor_principal:
+                                        resp_deputado = requests.get(autor_principal['uri'])
+                                        dados_deputado = resp_deputado.json()['dados']
+                                        # Pega o ultimo status do partido
+                                        partido_autor = dados_deputado['ultimoStatus']['siglaPartido']
                         except:
-                            nome_autor = "Erro ao buscar autor"
-                            partido_autor = "-"
+                            partido_autor = "Não disponível"
 
-                        # --- EXIBIÇÃO ATUALIZADA ---
+                        # --- EXIBIÇÃO ---
                         with st.expander(f"📄 {projeto['siglaTipo']} {projeto['numero']}/{projeto['ano']}"):
-                            # Usando markdown para formatar como você pediu
                             st.markdown(f"""
                             **Iniciador(a):** {nome_autor}  
-                            **Partido:** {partido_autor}  
-                            **Ementa:** {projeto['ementa']}  
+                            **Partido político:** {partido_autor}  
+                            **Ementa:** {projeto['ementa']}
                             """)
                             
                             link_camara = f"https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao={projeto['id']}"
