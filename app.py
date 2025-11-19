@@ -19,7 +19,7 @@ Digite um tema jurídico abaixo para ver os temas de Projetos de Lei que estão 
 st.divider() # Linha divisória visual
 
 # 3. Entrada de Dados (Input do Usuário)
-tema = st.text_input("Digite uma palavra-chave (ex: Criptomoedas, Divórcio, IA):")
+tema = st.text_input("Digite uma palavra-chave (ex: Armas, Drogas, Divórcio, IA, etc.):")
 botao_buscar = st.button("Pesquisar Projetos")
 
 # 4. Lógica da Pesquisa (Conexão com a API)
