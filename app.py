@@ -13,7 +13,7 @@ st.set_page_config(
 st.title("Monitor Legislativo")
 st.markdown("""
 Bem-vindo ao buscador de **Proposições Legislativas**. 
-Digite um tema jurídico abaixo para ver o que está tramitando na Câmara dos Deputados.
+Digite um tema jurídico abaixo para ver os temas de Projetos de Lei que estão tramitando na Câmara dos Deputados.
 """)
 
 st.divider() # Linha divisória visual
