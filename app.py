@@ -70,7 +70,7 @@ if botao_buscar and tema:
                         with st.expander(f"📄 {projeto['siglaTipo']} {projeto['numero']}/{projeto['ano']}"):
                             # Usando markdown para formatar como você pediu
                             st.markdown(f"""
-                            **Nome da pessoa que propôs:** {nome_autor}  
+                            **Iniciador(a):** {nome_autor}  
                             **Partido:** {partido_autor}  
                             **Ementa:** {projeto['ementa']}  
                             """)
