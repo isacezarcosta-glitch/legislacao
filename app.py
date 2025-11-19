@@ -18,7 +18,7 @@ Digite um tema jurídico abaixo para ver os temas de PL em tramitação na Câma
 st.divider() 
 
 # 3. Entrada de Dados
-tema = st.text_input("Digite uma palavra-chave (ex: Criptomoedas, Divórcio, IA):")
+tema = st.text_input("Digite uma palavra-chave (ex: Armas, Drogas, Divórcio, IA, etc.):")
 botao_buscar = st.button("Pesquisar Projetos")
 
 # 4. Lógica da Pesquisa
