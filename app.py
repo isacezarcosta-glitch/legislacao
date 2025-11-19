@@ -40,7 +40,7 @@ if botao_buscar and tema:
             "itens": 10 
         }
             
-            if resposta.status_code == 200:
+        if resposta.status_code == 200:
                 dados = resposta.json()['dados']
                 
                 if len(dados) > 0:
