@@ -5,12 +5,12 @@ import pandas as pd
 # 1. Configuração da Página
 st.set_page_config(
     page_title="Monitor Legislativo",
-    page_icon="⚖️",
+    page_icon="",
     layout="centered"
 )
 
 # 2. Título e Cabeçalho
-st.title("🏛️ Monitor Legislativo")
+st.title("Monitor Legislativo")
 st.markdown("""
 Bem-vindo ao buscador de **Proposições Legislativas**. 
 Digite um tema jurídico abaixo para ver o que está tramitando na Câmara dos Deputados.
