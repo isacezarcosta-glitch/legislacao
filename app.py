@@ -20,31 +20,52 @@ st.divider()
 # 3. Entrada de Dados
 tema = st.text_input("Digite uma palavra-chave (ex: Armas, Drogas, Divórcio, IA, etc.):")
 
-# --- NOVO: Filtro de Ano ---
-# Adicionei um slider que vai de 2000 até 2025
-ano_filtro = st.slider("Selecione o ano do projeto:", min_value=2000, max_value=2025, value=2024)
+# --- NOVO: Checkbox para ligar/desligar o filtro de ano ---
+col1, col2 = st.columns([1, 3])
+with col1:
+    # O usuário escolhe se quer filtrar
+    usar_filtro_ano = st.checkbox("Filtrar por ano?")
+
+ano_selecionado = None
+if usar_filtro_ano:
+    # Se marcou o checkbox, mostramos o slider
+    ano_selecionado = st.slider("Selecione o ano:", min_value=2000, max_value=2025, value=2024)
+else:
+    st.caption("Pesquisando em todos os anos disponíveis.")
 
 botao_buscar = st.button("Pesquisar Projetos")
 
 # 4. Lógica da Pesquisa
 if botao_buscar and tema:
-    with st.spinner(f'Consultando a base de dados da Câmara para o ano de {ano_filtro}...'):
-        # URL base da API
+    # Monta a mensagem de carregamento dependendo se tem ano ou não
+    msg_loading = f'Consultando base de dados ({ano_selecionado})...' if usar_filtro_ano else 'Consultando base de dados (Todos os anos)...'
+    
+    with st.spinner(msg_loading):
         url_proposicoes = "https://dadosabertos.camara.leg.br/api/v2/proposicoes"
         
+        # Parâmetros básicos (sempre enviados)
         parametros = {
             "keywords": tema,
-            "ano": ano_filtro,  # --- AQUI ESTÁ A MUDANÇA: O filtro entra na requisição ---
             "ordem": "DESC",
             "ordenarPor": "id",
             "itens": 10 
         }
+
+        # --- LÓGICA CONDICIONAL ---
+        # Só adicionamos o "ano" na regra de busca SE a caixinha estiver marcada
+        if usar_filtro_ano:
+            parametros["ano"] = ano_selecionado
+        
+        try:
+            resposta = requests.get(url_proposicoes, params=parametros)
             
-        if resposta.status_code == 200:
+            if resposta.status_code == 200:
                 dados = resposta.json()['dados']
                 
                 if len(dados) > 0:
-                    st.success(f"Encontramos {len(dados)} projetos sobre '{tema}' no ano de {ano_filtro}:")
+                    # Mensagem de sucesso personalizada
+                    complemento_msg = f"no ano de {ano_selecionado}" if usar_filtro_ano else "em todo o histórico recente"
+                    st.success(f"Encontramos {len(dados)} projetos sobre '{tema}' {complemento_msg}:")
                     
                     for projeto in dados:
                         # --- LÓGICA DE AUTORES ---
@@ -60,7 +81,6 @@ if botao_buscar and tema:
                                 autor_principal = lista_autores[0]
                                 nome_autor = autor_principal['nome']
                                 
-                                # Tenta pegar a sigla direta ou busca na URI do deputado
                                 if 'siglaPartido' in autor_principal and autor_principal['siglaPartido']:
                                     partido_autor = autor_principal['siglaPartido']
                                 elif 'uri' in autor_principal:
@@ -82,7 +102,7 @@ if botao_buscar and tema:
                             st.markdown(f"[🔗 Ver Tramitação Completa na Câmara]({link_camara})")
                             
                 else:
-                    st.warning(f"Nenhum projeto encontrado com a palavra '{tema}' no ano de {ano_filtro}.")
+                    st.warning(f"Nenhum projeto encontrado com a palavra '{tema}'.")
             else:
                 st.error("Erro ao conectar com a API da Câmara.")
                 
